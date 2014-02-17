@@ -1,33 +1,61 @@
 ###### SPATIAL INTERPOLATION OF PRECIPITATION DATA ON KAPUAS AND SUBCATCHMENTS #####
 
 #### SET UP ####
-library(foreign)
-library(sp)
-library(maptools)
-library(hydroTSM)
+library("sp")
+library("maptools")
+library("raster")
+library("gstat")
+library("hydroTSM")
 
 projection=CRS("+proj=utm +zone=49 +datum=WGS84 +units=m +no_defs")
 
 #### LOAD FILES ####
-   sekayam_shp <-readShapePoly(fn="input/sekayam_wgs84utm49N/sekayam-subcatchment.shp", IDvar="DN", proj4string=projection)
-   kapuas_shp  <-readShapePoly(fn="input/kapuas_wgs84utm49N/kauas-catchment.shp", IDvar="DN", proj4string=projection)
-   stations    <-read.dbf("input/stationmap_wgs84utm49N/stationmap.dbf")
-   ys_df       <-read.csv2("input/yearly_sums.csv", row.names=1, header = TRUE, sep=";")
+   sek_tay_shp <-readShapePoly(fn="input/tayan-sekayam//tayan-sekayam.shp", IDvar="catchment", proj4string=projection)
+   kapuas_shp  <-readShapePoly(fn="input/kapuas-basin//kapuas-basin.shp", IDvar="DN", proj4string=projection)
+   stations<-readShapePoints("input/stationmap/stationmap.shp")
+   stations=as.data.frame(stations)
+   ms_df       <-read.csv("input/monthly_sums.csv", row.names=1, header = TRUE)
    
 #### ANALYSIS ####
-   # for now we use long term annual mean sums
-   ys_mean=colMeans(ys_df, na.rm=TRUE)
+
+# subset the data
+   dates=as.Date(row.names(ms_df))
+   ms_dfx=ms_df[which(as.character(dates)=="2004-01-01"):
+                   which(as.character(dates)=="2007-12-01"),]
+   datesx=dates[which(as.character(dates)=="2004-01-01"):
+                    which(as.character(dates)=="2007-12-01")]
 
 ####   IDW ####
-   sekayam.idw <- hydrokrige(
-               x.ts=ys_mean, x.gis=stations, catchment.name="all",
-               X="x", Y="y", sname="ID",
-               type= "cells",
-               subcatchments=sekayam_shp,
-               cell.size= 1000, 
-               p4s=projection, grid.type="regular",stations.plot=TRUE, stations.offset=c(100,100),
-               ColorRamp= "Precipitation",   
-               main= "IDW Precipitation of Sekayam")
+# Monthly interpolated map of rainfall
+
+# Block
+sek_tay.idw.b <- hydrokrige(
+   x.ts=ms_dfx, dates=datesx,
+   x.gis=stations, sname="ID", X="long", Y="lat", 
+   subcatchments=test, 
+   type="block",               
+   cell.size= 0.05, grid.type="regular", p4s=projection)
+
+# CELL
+#produces a large file! 2X MB
+sek_tay.idw.c=list()
+for (i in 1:nrow(ms_dfx)){
+   sek_tay.idw.c[i] <- hydrokrige(
+      x.ts=unlist(ms_dfx[i,]), 
+      x.gis=stations, X="long", Y="lat", sname="ID", 
+      subcatchments=sek_tay_shp,
+      type="cells",               
+      cell.size= 0.05, p4s=projection, grid.type="regular",
+      stations.plot=TRUE, stations.offset=c(100,100),
+      ColorRamp= "Precipitation",   
+      main= paste("IDW Precipitation in",i)) }
+
+## Convert to raster brick for easier file handling
+sek_tay_brick=lapply(sek_tay.idw.c, raster)
+sek_tay_brick=lapply(sek_tay_brick, function(x) x$var1.pred)
+sek_tay_brick=brick(sek_tay_brick)
+
+###
 
    kapuas.idw <- hydrokrige(
       x.ts=ys_mean[-6], x.gis=stations, catchment.name="all",
@@ -39,21 +67,21 @@ projection=CRS("+proj=utm +zone=49 +datum=WGS84 +units=m +no_defs")
       ColorRamp= "Precipitation",   
       main= "IDW Precipitation of Kapuas")
 
-#### ORDINARY KRIGING ####
-   sekayam.ok <- hydrokrige(x.ts=ys_mean, x.gis=stations, catchment.name="all",
-                             X="x", Y="y", sname="ID",
-                             type= "cells", formula=value~1,
-                             subcatchments=sekayam_shp,
-                             cell.size= 1000, 
-                             p4s=projection, grid.type="regular",stations.plot=TRUE, stations.offset=c(100000,100000),
-                             ColorRamp= "Precipitation",   
-                             main= "OK Precipitation of Sekayam")
-   kapuas.ok <- hydrokrige(x.ts=ys_mean[-6], x.gis=stations, catchment.name="all",
-                         X="x", Y="y", sname="ID",
-                         type= "cells", formula=value~1,
-                         subcatchments=kapuas_shp,
-                         cell.size= 2000, 
-                         p4s=projection, grid.type="regular",stations.plot=TRUE, stations.offset=c(100,100),
-                         ColorRamp= "Precipitation",   
-                         main= "OK Precipitation of Kapuas")
+# #### ORDINARY KRIGING ####
+#    sekayam.ok <- hydrokrige(x.ts=ys_mean, x.gis=stations, catchment.name="all",
+#                              X="x", Y="y", sname="ID",
+#                              type= "cells", formula=value~1,
+#                              subcatchments=sekayam_shp,
+#                              cell.size= 1000, 
+#                              p4s=projection, grid.type="regular",stations.plot=TRUE, stations.offset=c(100000,100000),
+#                              ColorRamp= "Precipitation",   
+#                              main= "OK Precipitation of Sekayam")
+#    kapuas.ok <- hydrokrige(x.ts=ys_mean[-6], x.gis=stations, catchment.name="all",
+#                          X="x", Y="y", sname="ID",
+#                          type= "cells", formula=value~1,
+#                          subcatchments=kapuas_shp,
+#                          cell.size= 2000, 
+#                          p4s=projection, grid.type="regular",stations.plot=TRUE, stations.offset=c(100,100),
+#                          ColorRamp= "Precipitation",   
+#                          main= "OK Precipitation of Kapuas")
 #### END ####
