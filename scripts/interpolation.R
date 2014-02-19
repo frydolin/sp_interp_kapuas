@@ -7,30 +7,40 @@ library("raster")
 library("gstat")
 library("hydroTSM")
 
-   projection=CRS("+proj=utm +zone=49 +datum=WGS84 +units=m +no_defs")
+projection=CRS("+proj=utm +zone=49 +datum=WGS84 +units=m +no_defs")
 
 #### LOAD FILES ####
    subcatch_shp <-readShapePoly(fn="input/subcatchments/subcatchments.shp", IDvar="catchment", proj4string=projection)
 #    kapuas_shp  <-readShapePoly(fn="input/kapuas-basin//kapuas-basin.shp", IDvar="DN", proj4string=projection)
    stations<-readShapePoints("input/stationmap/stationmap.shp")
    stations=as.data.frame(stations)
-
-   m_df       <-read.csv("input/monthly_means.csv", row.names=1, header = TRUE)
+   
+   d_df  <-read.csv("input/daily_data.csv", row.names=1, header = TRUE)
+   m_df  <-read.csv("input/monthly_means.csv", row.names=1, header = TRUE)
    
 #### ANALYSIS ####
-# subset the data
+# subset the data (optional)
    dates=as.Date(row.names(m_df))
-dates[[2]]
+
    m_dfx=m_df[which(as.character(dates)=="2001-01-01"):
                    which(as.character(dates)=="2012-12-01"),]
    datesx=dates[which(as.character(dates)=="2001-01-01"):
                     which(as.character(dates)=="2012-12-01")]
 
 ####   IDW ####
-# Monthly interpolated map of rainfall
+### Block
+# Daily
+sek_tay.d.idw.b <- hydrokrige(
+   x.ts=d_df, dates=as.Date(row.names(d_df)),
+   from="2001-01-01", to="2012-12-01",
+   x.gis=stations, sname="ID", X="long", Y="lat", 
+   subcatchments=subcatch_shp, 
+   type="block",               
+   cell.size= 0.05, grid.type="regular", p4s=projection,
+   write2disk=TRUE, out.fmt="csv", fname="output/subcatch_d_idw.csv")
 
-# Block
-sek_tay.idw.b <- hydrokrige(
+# Monthly interpolated map of rainfall
+sek_tay.m.idw.b <- hydrokrige(
    x.ts=m_df, dates=dates,
    from="2001-01-01", to="2012-12-01",
    x.gis=stations, sname="ID", X="long", Y="lat", 
