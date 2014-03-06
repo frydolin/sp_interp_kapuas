@@ -11,6 +11,7 @@
 
 col.fun <- colorRampPalette(c("#D7635D","peachpuff","royalblue","#023b95"))
 rast.cols=col.fun(10)
-rast.theme<-rasterTheme(region=rast.cols)
+rast.theme<-rasterTheme(region=rast.cols, cex=0.8)
 label.theme <- list(add.text=list(cex=0.9,fontfamily='Lato'))
 
+#### END graphic_pars.R ####
