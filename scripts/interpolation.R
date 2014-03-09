@@ -12,7 +12,7 @@
    Sys.setlocale("LC_TIME", "en_US.UTF-8") 
 
 ## define projection
-   projection=CRS("+proj=utm +zone=49 +datum=WGS84 +units=m +no_defs")
+   projection=CRS("+proj=longlat +datum=WGS84 +no_defs")
 ### END SET UP ###
 
 #### LOAD FILES ####
@@ -96,12 +96,14 @@ rm(subcatch.m.idw.c,kapuas.m.idw.c)
    mon.fac <- factor(mon.fac)
    subcatch.idw.bymonth=zApply(subcatch.m.idw_brick, by=mon.fac, fun=mean, name='months')
       names(subcatch.idw.bymonth)=format.Date(datesx,format="%b")[1:12]
+   save(subcatch.idw.bymonth, file="output/subcatch.idw.bymonth")
    kapuas.idw.bymonth=zApply(kapuas.m.idw_brick, by=mon.fac, fun=mean, name='months')
       names(kapuas.idw.bymonth)=format.Date(datesx,format="%b")[1:12]
    # Yearly means
    subcatch.idw.yearly=apply.yearly(subcatch.m.idw_rts, mean)
    names(subcatch.idw.yearly@raster)=as.character(c(2001:2012))
-   subcatch.idw.ov.av=period.apply(subcatch.idw.yearly, 12, mean) # because it's 12 years 
+   subcatch.idw.ov.av=period.apply(subcatch.m.idw_rts, 144, mean) # because it's 144month
+   save(subcatch.idw.ov.av, file="output/subcatch.idw.ov.av")
    kapuas.idw.yearly=apply.yearly(kapuas.m.idw_rts, mean)
    names(kapuas.idw.yearly@raster)=as.character(c(2001:2012))
    kapuas.idw.ov.av=period.apply(kapuas.idw.yearly, 12, mean) # because it's 12 years 
