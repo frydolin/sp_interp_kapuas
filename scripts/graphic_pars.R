@@ -1,6 +1,10 @@
-
+###### SPATIO-TEMPORAL RAINFALL PATTERNS IN KAPUAS BASIN ######
+	### SPATIAL INTERPOLATION OF GAUGE DATA ###
 
 ## graphic_pars.R
+## sets graphic paramters and creates color scheme
+## called from within interpolation.R
+
 # pal <- function(col, border = "transparent", ...)
 # {
 #    n <- length(col)
@@ -8,10 +12,10 @@
 #         axes = FALSE, xlab = "", ylab = "", ...)
 #    rect(0:(n-1)/n, 0, 1:n/n, 1, col = col, border = border)
 # }
-
-col.fun <- colorRampPalette(c("#D7635D","peachpuff","royalblue","#023b95"))
-rast.cols=col.fun(10)
+col.fun <- colorRampPalette(c("#af5752","peachpuff","royalblue","#0f1c66"))
+rast.cols=col.fun(20)
 rast.theme<-rasterTheme(region=rast.cols, cex=0.8)
-label.theme <- list(add.text=list(cex=0.9,fontfamily='Lato'))
+label.theme <- list(add.text=list(cex=0.8,fontfamily='Lato', col="violetred"))
+colors()
 
-#### END graphic_pars.R ####
+###### END graphic_pars.R ######
