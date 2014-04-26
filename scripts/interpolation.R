@@ -31,7 +31,7 @@
 ### END LOAD FILES ###
 
 #### IDW INTERPOLATION ####
-### Block
+### BLOCK (i.e. areal averages)
 	# only for the subcatchments
 	# Daily
 	subcatch.d.idw.b <- hydrokrige(
@@ -85,19 +85,22 @@
 #### FORMAT CONVERSION ####
 # Convert to raster brick for easier file handling
 # and set time slot to make it a time series
+	# define function:
    make.idw.brick=function(x, time){
    idw_brick=lapply(x, raster)
    idw_brick=lapply(idw_brick, function(x) x$var1.pred)
    idw_brick=brick(idw_brick)
    idw_brick=setZ(idw_brick, z=time, name="time")
    }
+	# execute:
    subcatch.m.idw_brick=make.idw.brick(subcatch.m.idw.c, time=datesx)
    kapuas.m.idw_brick=make.idw.brick(kapuas.m.idw.c, time=datesx)
    
-# Convert to raster time series format
+# Convert to raster time series:
 	library("rts")
-   subcatch.m.idw_rts=rts( subcatch.m.idw_brick,time=datesx)
-   kapuas.m.idw_rts=rts(kapuas.m.idw_brick,time=datesx)
+	subcatch.m.idw_rts=rts( subcatch.m.idw_brick,time=datesx)
+	kapuas.m.idw_rts=rts(kapuas.m.idw_brick,time=datesx)
+   
 rm(subcatch.m.idw.c,kapuas.m.idw.c)
 ###
 
@@ -115,13 +118,15 @@ rm(subcatch.m.idw.c,kapuas.m.idw.c)
    	
    # Yearly means
    subcatch.idw.yearly=apply.yearly(subcatch.m.idw_rts, mean)
-   	names(subcatch.idw.yearly@raster)=as.character(c(2001:2012))   	
+   	names(subcatch.idw.yearly@raster)=as.character(c(2001:2012)) 
+   	  	
    kapuas.idw.yearly=apply.yearly(kapuas.m.idw_rts, mean)
    	names(kapuas.idw.yearly@raster)=as.character(c(2001:2012))
 
 	# Long term average 2001-2012
    subcatch.idw.ov.av=period.apply(subcatch.m.idw_rts, 144, mean) # because it's 144month
    	save(subcatch.idw.ov.av, file="output/subcatch.idw.ov.av")   	# save to disk as it is needed later
+   	
    kapuas.idw.ov.av=period.apply(kapuas.idw.yearly, 12, mean) # because it's 12 years 
 ### END AGGREGATION ###
 
@@ -170,3 +175,4 @@ rm(subcatch.m.idw.c,kapuas.m.idw.c)
 ### END VISUALIZATION ###
 
 ###### END interpolation.R ######
+

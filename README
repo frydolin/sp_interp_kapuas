@@ -1,1 +1,35 @@
-###### SPATIAL INTERPOLATION OF PRECIPITATION DATA ON KAPUAS AND SUBCATCHMENTS #####
+###### 	R project for:
+###### SPATIO-TEMPORAL RAINFALL PATTERNS IN KAPUAS BASIN ######
+	### SPATIAL INTERPOLATION OF PRECIPITATION DATA ON KAPUAS AND SUBCATCHMENTS ###
+
+### R FILES ###
++ interpolation.R	## loads and interpolates the data; plots the results
+# called from within interpolation.R:
++ graphic_pars.R 	## sets graphic paramters and creates color scheme
+###
+### NECESSARY ADJUSTMENTS BEFORE RUNNING THE CODE ###
+The analysis will use all stations it finds data and the georgaphical position for. If stations should be excluded, this has to be adjusted.
+###
+### NECESSARY FOLDER STRUCTURE ###
+ /input		# contains input data
+ 		+ subfolders where data is located
+ /output		# where output is written to
+ /scripts		# all R scripts
+	other folders are created automatically
+###
+
+### REQUIRED PACKAGES ###
+attached base packages:
+[1] grid      stats     graphics  grDevices utils  datasets  methods   base     
+
+other attached packages:
+ [1] rasterVis_0.24      hexbin_1.26.3       latticeExtra_0.6-26 RColorBrewer_1.0-5 
+ [5] lattice_0.20-24     hydroTSM_0.4-1      xts_0.9-7           zoo_1.7-10         
+ [9] gstat_1.0-17        raster_2.1-49       maptools_0.8-27     sp_1.0-14          
+
+loaded via a namespace (and not attached):
+[1] automap_1.0-14   class_7.3-9      e1071_1.6-1      foreign_0.8-57   intervals_0.14.0
+[6] reshape_0.8.4    spacetime_1.0-9  tools_3.0.2 
+###
+
+###### END README ######
